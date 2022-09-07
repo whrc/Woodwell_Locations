@@ -206,7 +206,7 @@
                 source: 'locations',
                 filter: ['!', ['has', 'point_count']],
                 paint: {
-                  'circle-color': '#dd502c',
+                  'circle-color': '#ffffcc',
                   'circle-radius': 9,
                   'circle-stroke-width': 0,
                   'circle-stroke-color': '#fff',
@@ -250,7 +250,7 @@
                 new mapboxgl.Popup()
                   .setLngLat(coordinates)
                   .setHTML(
-                    '<h3>' + location + '</h3>' + '<h4>' + '<b>' + ' ' + location + '</b>' + '</h4>' + '<h4>' + '<b>' + ' ' + zipcode + '</b>' + '</h4>' + '<h4>'
+                    '<h3>' + city + '</h3>' + '<h4>' + '<b>' + ' ' + location + '</b>' + '</h4>' + '<h4>' + '<b>' + ' ' + zipcode + '</b>' + '</h4>' + '<h4>'
                   )
                   .addTo(map);
               });
