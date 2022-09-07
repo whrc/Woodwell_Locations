@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html>
+
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>Staff Locations</title>
+    <meta name="description" content="">
+    <meta name='viewport' content='initial-scale=1,maximum-scale=1,user-scalable=no' />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.0/jquery.min.js"></script>
+    <script src="https://api.mapbox.com/mapbox-gl-js/v1.9.1/mapbox-gl.js"></script>
+    <link href="https://api.mapbox.com/mapbox-gl-js/v1.9.1/mapbox-gl.css" rel="stylesheet" />
+    <script src='https://npmcdn.com/csv2geojson@latest/csv2geojson.js'></script>
+
+  </head>
+  <style>
+    body {
+    background: #404040;
+    margin: 0;
+    padding: 0;
+    overflow-x: hidden; /* Hide horizontal scrollbar */
+    }
+
+  #menu {
+        position: fixed;
+        z-index: 1;
+        left: 2%;
+        top: 3%;
+        border-radius: 30px;
+        width: 350px;
+        font-family: "Trebuchet MS", Helvetica, sans-serif;
+        color: #ffffff;
+        opacity: 0.9;
+        text-transform: uppercase;
+        font-size: 13px;
+        font-weight: bold;
+        text-shadow: 1.5px 1.5px 4px #808080;
+    }
+
+    #map {
+      border-left: 0px solid #fff;
+      position: absolute;
+      width: 100%;
+      top: 0;
+      bottom: 0;
+    }
+
+
+    .mapboxgl-popup {
+      padding-bottom: 5px;
+    }
+
+    .mapboxgl-popup-close-button {
+      display: true;
+    }
+
+    .mapboxgl-popup-content {
+      font: 400 14px/22px "Trebuchet MS", Helvetica, sans-serif;
+      padding: 0;
+      width: 250px;
+    }
+
+    .mapboxgl-popup-content-wrapper {
+      padding: 1%;
+    }
+
+    .mapboxgl-popup-content h3 {
+      background: rgb(191, 191, 191);
+      text-align: center;
+      color: #000000;
+      margin: 0;
+      display: block;
+      padding: 15px;
+      font-weight: 700;
+      margin-top: -5px;
+    }
+
+    .mapboxgl-popup-content h4 {
+      margin: 0;
+      display: block;
+      padding: 10px 3px 10px 10px;
+      font-weight: 400;
+    }
+
+    .mapboxgl-container {
+      cursor: pointer;
+    }
+
+    .mapboxgl-popup-anchor-top>.mapboxgl-popup-content {
+      margin-top: 3px;
+    }
+
+    .mapboxgl-popup-anchor-top>.mapboxgl-popup-tip {
+      border-bottom-color: rgb(61, 59, 59);
+    }
+
+
+
+  </style>
+
+  <body>
+
+    <div id="map"></div>
+
+    <div id="menu">
+      <input id="mapbox/satellite-v9" type="radio" name="rtoggle" value="satellite" />
+      <label for="satellite">satellite</label>
+      <input id="mapbox/dark-v10" type="radio" name="rtoggle" value="dark" checked="checked" />
+      <label for="dark">map</label>
+    </div>
+
+    <script>
+    mapboxgl.accessToken = 'pk.eyJ1IjoiZ2Zpc2tlLXdocmMiLCJhIjoiY2s4aXdpYWdnMGFwejNncW9ueTl1ODA5ZCJ9.cdEhouG-8PZe9n8fXPmYlA';
+  var map = new mapboxgl.Map({
+    container: 'map', // container id
+    //style: "mapbox://styles/mapbox/satellite-v9", // satellite
+    style: "mapbox://styles/mapbox/dark-v10", // dark
+    center: [-110, 30.0], // starting position
+    zoom: 2, // starting zoom
+    attributionControl: false,
+    showLogoBug: true
+  });
+
+
+  // Add zoom and rotation controls to the map.
+  //map.addControl(new mapboxgl.NavigationControl());
+
+  $(document).ready(function() {
+    $.ajax({
+      type: "GET",
+      url: 'https://docs.google.com/spreadsheets/d/1ymE26lnByRaeQfwrRFmTQjXxZVbFsNh57CmngX_CqdQ/gviz/tq?tqx=out:csv&sheet=Sheet1',
+      dataType: "text",
+      success: function(csvData) {
+        makeGeoJSON(csvData);
+      }
+    });
+  });
+
+  function makeGeoJSON(csvData) {
+    //console.log(csvData)
+    csv2geojson.csv2geojson(csvData, {
+        latfield: 'lat',
+        lonfield: 'long',
+        delimiter: ','
+      }, function(err, data) {
+        //console.log(data)
+        map.on('idle', function() {
+
+            // Add a new source from our GeoJSON data and
+            // set the 'cluster' option to true. GL-JS will
+            // add the point_count property to your source data.
+
+            map.addSource('locations', {
+              type: 'geojson',
+              data: data,
+              cluster: true,
+              clusterMaxZoom: 14, // Max zoom to cluster points on
+              clusterRadius: 50 // Radius of each cluster when clustering points (defaults to 50)
+            });
+
+            map.addLayer({
+              id: 'clusters',
+              type: 'circle',
+              source: 'locations',
+              filter: ['has', 'point_count'],
+              paint: {
+                'circle-color': [
+                  'step',
+                  ['get', 'point_count'],
+                  '#dd502c',
+                  5,
+                  '#dd502c',
+                  15,
+                  '#dd502c'
+                ],
+                'circle-radius': [
+                  'step',
+                  ['get', 'point_count'],
+                  20,
+                  5,
+                  30,
+                  15,
+                  40
+                ],
+                'circle-opacity': 0.6
+              }
+            });
+
+            map.addLayer({
+                id: 'cluster-count',
+                type: 'symbol',
+                source: 'locations',
+                filter: ['has', 'point_count'],
+                layout: {
+                  'text-field': '{point_count_abbreviated}',
+                  'text-font': ['DIN Offc Pro Medium', 'Arial Unicode MS Bold'],
+                  'text-size': 14
+                },
+                paint: {
+                  "text-color": "#ffffff"}
+                });
+
+              map.addLayer({
+                id: 'unclustered-point',
+                type: 'circle',
+                source: 'locations',
+                filter: ['!', ['has', 'point_count']],
+                paint: {
+                  'circle-color': '#dd502c',
+                  'circle-radius': 9,
+                  'circle-stroke-width': 0,
+                  'circle-stroke-color': '#fff',
+                  'circle-opacity': 0.9
+                }
+              });
+
+              // inspect a cluster on click
+              map.on('click', 'clusters', function(e) {
+                var features = map.queryRenderedFeatures(e.point, {
+                  layers: ['clusters']
+                });
+                var clusterId = features[0].properties.cluster_id;
+                map.getSource('locations').getClusterExpansionZoom(
+                  clusterId,
+                  function(err, zoom) {
+                    if (err) return;
+
+                    map.easeTo({
+                      center: features[0].geometry.coordinates,
+                      zoom: zoom
+                    });
+                  }
+                );
+              });
+
+              // make popup
+              map.on('click', 'unclustered-point', function(e) {
+                var coordinates = e.features[0].geometry.coordinates.slice();
+                var location = e.features[0].properties.LOCATION;
+                var city = e.features[0].properties.CITY;
+                var zipcode = e.features[0].properties.ZIP_CODE;
+
+                // Ensure that if the map is zoomed out such that
+                // multiple copies of the feature are visible, the
+                // popup appears over the copy being pointed to.
+                while (Math.abs(e.lngLat.lng - coordinates[0]) > 180) {
+                  coordinates[0] += e.lngLat.lng > coordinates[0] ? 360 : -360;
+                }
+
+                new mapboxgl.Popup()
+                  .setLngLat(coordinates)
+                  .setHTML(
+                    '<h3>' + location + '</h3>' + '<h4>' + '<b>' + ' ' + location + '</b>' + '</h4>' + '<h4>' + '<b>' + ' ' + zipcode + '</b>' + '</h4>' + '<h4>'
+                  )
+                  .addTo(map);
+              });
+
+
+              map.on('mouseenter', 'clusters', function() {
+                map.getCanvas().style.cursor = 'pointer';
+              }); map.on('mouseleave', 'clusters', function() {
+                map.getCanvas().style.cursor = '';
+              });
+            });
+
+          // Selection basemap
+          var layerList = document.getElementById('menu');
+          var inputs = layerList.getElementsByTagName('input');
+
+          function switchLayer(layer) {
+            var layerId = layer.target.id;
+            map.setStyle('mapbox://styles/' + layerId);
+          }
+          for (var i = 0; i < inputs.length; i++) {
+            inputs[i].onclick = switchLayer;
+          }
+
+        });
+    }
+
+      </script>
+  </body>
+
+</html>
