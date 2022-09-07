@@ -237,7 +237,7 @@
               // make popup
               map.on('click', 'unclustered-point', function(e) {
                 var coordinates = e.features[0].geometry.coordinates.slice();
-                var location = e.features[0].properties.LOCATION;
+                var remote = e.features[0].properties.REMOTE;
                 var city = e.features[0].properties.CITY;
                 var zipcode = e.features[0].properties.ZIP_CODE;
 
@@ -251,7 +251,7 @@
                 new mapboxgl.Popup()
                   .setLngLat(coordinates)
                   .setHTML(
-                    '<h3>' + city + '</h3>' + '<h4>' + '<b>' + ' ' + location + '</b>' + '</h4>' + '<h4>' + '<b>' + ' ' + zipcode + '</b>' + '</h4>' + '<h4>'
+                    '<h3>' + city + '</h3>' + '<h4>' + '<b>' + ' ' + remote + '</b>' + '</h4>' + '<h4>' + '<b>' + ' ' + zipcode + '</b>' + '</h4>' + '<h4>'
                   )
                   .addTo(map);
               });
