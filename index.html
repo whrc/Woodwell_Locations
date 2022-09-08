@@ -240,6 +240,8 @@
                 var remote = e.features[0].properties.REMOTE;
                 var city = e.features[0].properties.CITY;
                 var zipcode = e.features[0].properties.ZIP_CODE;
+                var lat = e.features[0].properties.lat;
+                var long = e.features[0].properties.long;
 
                 // Ensure that if the map is zoomed out such that
                 // multiple copies of the feature are visible, the
@@ -251,7 +253,7 @@
                 new mapboxgl.Popup()
                   .setLngLat(coordinates)
                   .setHTML(
-                    '<h3>' + 'Generalized City Location: ' + '</h3>' + '<h3>' + '<b>' + ' ' + city + '</b>' + ' lat:' + latfield + ' long:' + longfield + '</h3>'
+                    '<h3>' + 'Generalized City Location: ' + '</h3>' + '<h3>' + '<b>' + ' ' + city + '</b>' + ' lat:' + lat + ' long:' + long + '</h3>'
                   )
                   .addTo(map);
               });
