@@ -237,10 +237,8 @@
               // make popup
               map.on('click', 'unclustered-point', function(e) {
                 var coordinates = e.features[0].geometry.coordinates.slice();
-                var remote = e.features[0].properties.REMOTE;
-                var city = e.features[0].properties.CITY;
-                var zipcode = e.features[0].properties.ZIP_CODE;
-                var state = e.features[0].properties.STATE_PROV;
+                var city = e.features[0].properties.City;
+                var state = e.features[0].properties.Region;
 
                 // Ensure that if the map is zoomed out such that
                 // multiple copies of the feature are visible, the
@@ -252,7 +250,7 @@
                 new mapboxgl.Popup()
                   .setLngLat(coordinates)
                   .setHTML(
-                    '<h4>' + 'Generalized City Location: ' + '</h4>' + '<h4>' + '<b>' + ' ' + city + '</b>' + ' ' + zipcode + ' ' + state + '</h4>'
+                    '<h4>' + 'Generalized City Location: ' + '</h4>' + '<h4>' + '<b>' + ' ' + city + '</b>' + ' ' + state + '</h4>'
                   )
                   .addTo(map);
               });
